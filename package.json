@@ -1,0 +1,23 @@
+{
+  "name": "hermes-sensei",
+  "version": "0.2.0",
+  "description": "Adaptive Japanese gap analysis and remediation, backed by the open Japanese taxonomy.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "serve": "node src/server.mjs",
+    "mcp": "node src/mcp/server.mjs",
+    "test": "node --test",
+    "validate": "node scripts/validate.mjs",
+    "seed:demo": "node scripts/seed-demo.mjs",
+    "hermes:config": "node scripts/hermes-config.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.4.3"
+  }
+}

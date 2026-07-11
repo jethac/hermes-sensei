@@ -1,0 +1,23 @@
+mcp_servers:
+  sensei:
+    command: "node"
+    args:
+      - "/absolute/path/to/hermes-sensei/src/mcp/server.mjs"
+    tools:
+      include:
+        - catalog
+        - begin_diagnostic
+        - next_probe
+        - record_evidence
+        - analyze_gaps
+        - scan_inbox
+        - inspect_scan
+        - ingest_highlights
+        - review_highlights
+      prompts: false
+      resources: false
+    supports_parallel_tool_calls: false
+
+skills:
+  external_dirs:
+    - "/absolute/path/to/hermes-sensei/integrations/hermes/skills"

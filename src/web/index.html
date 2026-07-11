@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f2efe6">
+    <title>Sensei · Japanese learning diagnostics</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <div class="appShell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="Sensei home">
+          <span class="brandMark" lang="ja">先</span>
+          <span><strong>Sensei</strong><small data-copy="brandTag">Japanese learning diagnostics</small></span>
+        </a>
+        <div class="topbarActions">
+          <span id="taxonomyStatus" class="taxonomyStatus"><i></i><span>Loading taxonomy…</span></span>
+          <div class="localeSwitch" role="group" aria-label="Language">
+            <button type="button" data-locale="en" aria-pressed="true">EN</button>
+            <button type="button" data-locale="ja" aria-pressed="false">日本語</button>
+          </div>
+          <button id="themeToggle" class="iconButton" type="button" aria-label="Use dark theme">☾</button>
+        </div>
+      </header>
+
+      <div class="workspace">
+        <aside class="learnerPanel">
+          <div class="panelIntro">
+            <span class="eyebrow" data-copy="learnerContext">Learner context</span>
+            <h2 data-copy="calibrate">Calibrate the prior</h2>
+            <p data-copy="priorExplanation">Exam history starts the estimate. It never counts as demonstrated mastery.</p>
+          </div>
+
+          <form id="learnerForm" class="learnerForm">
+            <label>
+              <span data-copy="name">Name</span>
+              <input id="displayName" name="displayName" autocomplete="name" placeholder="Optional">
+            </label>
+            <label>
+              <span data-copy="declaredJlpt">Highest JLPT passed</span>
+              <select id="declaredJlpt" name="declaredJlpt">
+                <option value="">Not provided</option>
+                <option>N5</option><option>N4</option><option>N3</option><option>N2</option><option>N1</option>
+              </select>
+            </label>
+            <label>
+              <span data-copy="goal">What should become real?</span>
+              <textarea id="goalInput" name="goal" rows="3" placeholder="e.g. read literary criticism without hiding behind the dictionary"></textarea>
+            </label>
+            <div class="formRow">
+              <label>
+                <span data-copy="diagnosticMode">Diagnostic mode</span>
+                <select id="modeSelect" name="mode">
+                  <option value="baseline" data-copy="baseline">Broad baseline</option>
+                  <option value="targeted" data-copy="targeted">Targeted</option>
+                  <option value="beyond-exam" data-copy="beyondExam">Beyond exam</option>
+                </select>
+              </label>
+              <label>
+                <span data-copy="probes">Probes</span>
+                <select id="probeCount" name="probeCount">
+                  <option>8</option><option selected>12</option><option>20</option><option>30</option>
+                </select>
+              </label>
+            </div>
+            <button id="startDiagnostic" class="primaryButton" type="submit">
+              <span data-copy="startDiagnostic">Start adaptive diagnostic</span><b>→</b>
+            </button>
+          </form>
+
+          <section class="targetPicker">
+            <div class="sectionHeading">
+              <span data-copy="targetCapabilities">Target capabilities</span>
+              <button id="clearTargets" type="button" data-copy="clear">Clear</button>
+            </div>
+            <input id="capabilitySearch" type="search" placeholder="Search capability…">
+            <div id="selectedTargets" class="selectedTargets"></div>
+            <div id="capabilityResults" class="capabilityResults"></div>
+          </section>
+
+          <footer class="privacyNote">
+            <i>⌂</i>
+            <p><strong data-copy="localFirst">Local-first</strong><span data-copy="privacy">Learner evidence stays in this Sensei installation.</span></p>
+          </footer>
+        </aside>
+
+        <main class="mainContent">
+          <section class="hero">
+            <div>
+              <span class="eyebrow" data-copy="targetedJapanese">Targeted Japanese learning</span>
+              <h1 data-copy="heroTitle">Find the smallest thing worth fixing.</h1>
+              <p data-copy="heroSummary">Measure what is real, locate the prerequisite that is actually blocking you, and learn only what changes the outcome.</p>
+            </div>
+            <label class="lensControl">
+              <span data-copy="coverageLens">Coverage lens</span>
+              <select id="lensSelect">
+                <option value="none">Whole capability map</option>
+                <optgroup label="JLPT">
+                  <option value="jlpt:N5">JLPT N5</option><option value="jlpt:N4">JLPT N4</option>
+                  <option value="jlpt:N3">JLPT N3</option><option value="jlpt:N2">JLPT N2</option>
+                  <option value="jlpt:N1">JLPT N1</option>
+                </optgroup>
+                <optgroup label="BJT">
+                  <option value="bjt:J5">BJT J5</option><option value="bjt:J4">BJT J4</option>
+                  <option value="bjt:J3">BJT J3</option><option value="bjt:J2">BJT J2</option>
+                  <option value="bjt:J1">BJT J1</option><option value="bjt:J1+">BJT J1+</option>
+                </optgroup>
+                <option value="mext">MEXT native curriculum</option>
+              </select>
+            </label>
+          </section>
+
+          <section id="statusStrip" class="statusStrip" aria-label="Mastery status summary"></section>
+
+          <section class="scanSection" aria-labelledby="scanSectionTitle">
+            <div class="scanHeader">
+              <div>
+                <span class="eyebrow" data-copy="readingEvidence">Evidence from your reading</span>
+                <h2 id="scanSectionTitle" data-copy="scanTitle">Turn your highlights into a personal gap map</h2>
+                <p data-copy="scanSummary">Upload pages where you marked unfamiliar language. Hermes proposes the highlighted words and constructions; nothing affects mastery until you confirm it.</p>
+              </div>
+              <button id="practiceReadingGaps" class="secondaryButton" type="button" disabled>
+                <span data-copy="quizReadingGaps">Quiz my confirmed gaps</span><b>→</b>
+              </button>
+            </div>
+
+            <div class="scanWorkspace">
+              <label id="scanDropzone" class="scanDropzone" for="scanInput">
+                <input id="scanInput" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden>
+                <i aria-hidden="true">＋</i>
+                <strong data-copy="dropScans">Drop highlighted pages here</strong>
+                <span data-copy="scanFormats">PNG, JPEG, or WebP · up to 15 MB each · stored only on this machine</span>
+                <span class="uploadAction" data-copy="chooseScans">Choose images</span>
+              </label>
+              <div class="scanInboxPanel">
+                <div class="scanInboxTopline">
+                  <div><span data-copy="scanInbox">Scan inbox</span><strong id="scanInboxCount">0</strong></div>
+                  <p id="scanInboxHint" data-copy="scanInboxEmpty">Upload a highlighted page, then ask Hermes to process your Sensei scan inbox.</p>
+                </div>
+                <div id="scanList" class="scanList"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="atlasSection">
+            <div class="atlasHeader">
+              <div>
+                <span class="eyebrow" data-copy="knowledgeMap">Knowledge map</span>
+                <h2 id="heatmapTitle">Capabilities</h2>
+              </div>
+              <div class="heatmapTabs" role="tablist" aria-label="Knowledge map layer">
+                <button type="button" role="tab" data-layer="capabilities" aria-selected="true" data-copy="capabilities">Capabilities</button>
+                <button type="button" role="tab" data-layer="kanji" aria-selected="false" data-copy="kanji">Kanji</button>
+                <button type="button" role="tab" data-layer="vocabulary" aria-selected="false" data-copy="vocabulary">Vocabulary</button>
+                <button type="button" role="tab" data-layer="grammar" aria-selected="false" data-copy="grammar">Grammar</button>
+              </div>
+            </div>
+            <div class="mapToolbar">
+              <div class="statusLegend" aria-label="Heatmap legend">
+                <span class="known"><i></i><span data-copy="known">Known</span></span>
+                <span class="fragile"><i></i><span data-copy="fragile">Fragile</span></span>
+                <span class="unknown"><i></i><span data-copy="unknown">Unknown</span></span>
+                <span class="untested"><i></i><span data-copy="untested">Untested</span></span>
+              </div>
+              <input id="mapSearch" type="search" placeholder="Filter this map…">
+            </div>
+            <div id="heatmap" class="heatmap" aria-live="polite"></div>
+          </section>
+
+          <section class="remediationSection">
+            <div class="remediationHeader">
+              <div>
+                <span class="eyebrow" data-copy="remediationQueue">Remediation queue</span>
+                <h2 data-copy="nextActions">The next actions that change the map</h2>
+              </div>
+              <p id="planBasis"></p>
+            </div>
+            <div id="remediationPlan" class="remediationPlan"></div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <div id="drawerScrim" class="drawerScrim" hidden></div>
+    <aside id="diagnosticDrawer" class="diagnosticDrawer" aria-hidden="true">
+      <header class="diagnosticHeader">
+        <div>
+          <span class="eyebrow" data-copy="adaptiveProbe">Adaptive probe</span>
+          <strong id="probeProgress">0 / 12</strong>
+        </div>
+        <button id="closeDiagnostic" class="iconButton" type="button" aria-label="Close diagnostic">×</button>
+      </header>
+      <div id="probeContent" class="probeContent"></div>
+    </aside>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

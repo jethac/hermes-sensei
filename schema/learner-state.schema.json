@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sensei.local/schema/learner-state.schema.json",
+  "title": "Sensei learner state",
+  "type": "object",
+  "required": ["schemaVersion", "learner", "evidence", "sessions", "planHistory", "personalItems", "scans", "scanFindings"],
+  "properties": {
+    "schemaVersion": { "const": "0.2.0" },
+    "learner": {
+      "type": "object",
+      "required": ["id", "displayName", "declaredJlpt", "declaredBjt", "goals", "targetCapabilityIds", "createdAt", "updatedAt"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$" },
+        "displayName": { "type": "string", "maxLength": 120 },
+        "declaredJlpt": { "type": ["string", "null"], "enum": ["N5", "N4", "N3", "N2", "N1", null] },
+        "declaredBjt": { "type": ["string", "null"], "enum": ["J5", "J4", "J3", "J2", "J1", "J1+", null] },
+        "goals": { "type": "array", "maxItems": 12, "items": { "type": "string" } },
+        "targetCapabilityIds": { "type": "array", "maxItems": 33, "items": { "type": "string", "pattern": "^jc_" }, "uniqueItems": true },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/evidence" }
+    },
+    "sessions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/session" }
+    },
+    "planHistory": { "type": "array" },
+    "personalItems": { "type": "array", "items": { "$ref": "#/$defs/personalItem" } },
+    "scans": { "type": "array", "items": { "$ref": "#/$defs/scan" } },
+    "scanFindings": { "type": "array", "items": { "$ref": "#/$defs/scanFinding" } }
+  },
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "required": ["id", "sessionId", "probeId", "subjectType", "subjectId", "capabilityIds", "modality", "score", "confidence", "evaluatedBy", "observedAt"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^evidence_" },
+        "sourceType": { "enum": ["diagnostic", "scan-highlight"] },
+        "sourceRef": {
+          "type": ["object", "null"],
+          "properties": { "scanId": { "type": "string", "pattern": "^scan_" }, "findingId": { "type": "string", "pattern": "^finding_" } },
+          "required": ["scanId", "findingId"],
+          "additionalProperties": false
+        },
+        "sessionId": { "type": ["string", "null"], "pattern": "^session_" },
+        "probeId": { "type": ["string", "null"], "pattern": "^probe_" },
+        "subjectType": { "enum": ["kanji", "script", "vocabulary", "grammar", "capability"] },
+        "subjectId": { "type": "string" },
+        "topicId": { "type": ["string", "null"] },
+        "capabilityIds": { "type": "array", "items": { "type": "string", "pattern": "^jc_" }, "uniqueItems": true },
+        "modality": { "enum": ["recognition", "recall", "production", "transfer"] },
+        "score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "assertedGap": { "type": "boolean" },
+        "evaluatedBy": { "enum": ["learner", "hermes", "auto", "teacher"] },
+        "latencyMs": { "type": ["integer", "null"], "minimum": 0 },
+        "notes": { "type": ["string", "null"], "maxLength": 1000 },
+        "observedAt": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    },
+    "personalItem": {
+      "type": "object",
+      "required": ["id", "type", "surface", "lemma", "character", "name", "japaneseName", "reading", "gloss", "context", "capabilityIds", "sourceCount", "firstSeenAt", "lastSeenAt", "origin"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^personal_" },
+        "type": { "enum": ["vocabulary", "kanji", "grammar"] },
+        "surface": { "type": "string" },
+        "lemma": { "type": ["string", "null"] },
+        "character": { "type": ["string", "null"] },
+        "name": { "type": ["string", "null"] },
+        "japaneseName": { "type": ["string", "null"] },
+        "reading": { "type": ["string", "null"] },
+        "gloss": { "type": ["string", "null"] },
+        "context": { "type": ["string", "null"] },
+        "capabilityIds": { "type": "array", "items": { "type": "string", "pattern": "^jc_" }, "uniqueItems": true },
+        "sourceCount": { "type": "integer", "minimum": 1 },
+        "firstSeenAt": { "type": "string", "format": "date-time" },
+        "lastSeenAt": { "type": "string", "format": "date-time" },
+        "origin": { "const": "personal" }
+      },
+      "additionalProperties": false
+    },
+    "scan": {
+      "type": "object",
+      "required": ["id", "filename", "mimeType", "bytes", "sha256", "originalAvailable", "source", "status", "pageCount", "createdAt", "updatedAt"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^scan_" },
+        "filename": { "type": "string", "maxLength": 180 },
+        "mimeType": { "type": ["string", "null"], "enum": ["image/png", "image/jpeg", "image/webp", null] },
+        "bytes": { "type": "integer", "minimum": 0, "maximum": 15728640 },
+        "sha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
+        "originalAvailable": { "type": "boolean" },
+        "source": { "enum": ["web-upload", "hermes-attachment"] },
+        "status": { "enum": ["pending", "extracted", "reviewed"] },
+        "pageCount": { "type": "integer", "minimum": 1, "maximum": 999 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    },
+    "scanFinding": {
+      "type": "object",
+      "required": ["id", "scanId", "page", "kind", "surface", "normalized", "lemma", "reading", "gloss", "context", "bbox", "visualConfidence", "notes", "reviewStatus", "linkedSubjectId", "createdAt", "reviewedAt"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^finding_" },
+        "scanId": { "type": "string", "pattern": "^scan_" },
+        "page": { "type": "integer", "minimum": 1, "maximum": 999 },
+        "kind": { "enum": ["vocabulary", "kanji", "grammar"] },
+        "surface": { "type": "string", "maxLength": 160 },
+        "normalized": { "type": "string", "maxLength": 160 },
+        "lemma": { "type": "string", "maxLength": 160 },
+        "reading": { "type": "string", "maxLength": 160 },
+        "gloss": { "type": "string", "maxLength": 300 },
+        "context": { "type": "string", "maxLength": 800 },
+        "bbox": {
+          "type": ["object", "null"],
+          "required": ["x", "y", "width", "height"],
+          "properties": {
+            "x": { "type": "number", "minimum": 0, "maximum": 1 }, "y": { "type": "number", "minimum": 0, "maximum": 1 },
+            "width": { "type": "number", "minimum": 0, "maximum": 1 }, "height": { "type": "number", "minimum": 0, "maximum": 1 }
+          },
+          "additionalProperties": false
+        },
+        "visualConfidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "notes": { "type": "string", "maxLength": 500 },
+        "reviewStatus": { "enum": ["pending", "confirmed", "rejected"] },
+        "linkedSubjectId": { "type": ["string", "null"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "reviewedAt": { "type": ["string", "null"], "format": "date-time" }
+      },
+      "additionalProperties": false
+    },
+    "session": {
+      "type": "object",
+      "required": ["id", "status", "mode", "lens", "targetCapabilityIds", "maxProbes", "probes", "responses", "createdAt", "completedAt"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^session_" },
+        "status": { "enum": ["active", "completed", "superseded"] },
+        "mode": { "enum": ["baseline", "targeted", "beyond-exam"] },
+        "focus": { "enum": ["mixed", "personal", "reading-gaps"] },
+        "lens": { "type": "string" },
+        "targetCapabilityIds": { "type": "array", "items": { "type": "string", "pattern": "^jc_" }, "uniqueItems": true },
+        "maxProbes": { "type": "integer", "minimum": 4, "maximum": 60 },
+        "probes": { "type": "array" },
+        "responses": { "type": "array" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "completedAt": { "type": ["string", "null"], "format": "date-time" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
