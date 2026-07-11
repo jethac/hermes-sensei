@@ -1,6 +1,6 @@
 # Sensei
 
-Sensei is a local-first Japanese gap-analysis and remediation system. It consumes [`../os-taxonomy-japanese`](../os-taxonomy-japanese) as read-only curriculum input, measures a learner through adaptive probes and confirmed highlights from real reading, renders known/fragile/unknown/untested heatmaps, and produces the smallest prerequisite-aware study queue supported by the evidence.
+Sensei is a local-first Japanese gap-analysis and remediation system. It consumes [os-taxonomy-japanese](https://github.com/jethac/os-taxonomy-japanese) as read-only curriculum input, measures a learner through adaptive probes and confirmed highlights from real reading, renders known/fragile/unknown/untested heatmaps, and produces the smallest prerequisite-aware study queue supported by the evidence.
 
 It is both:
 

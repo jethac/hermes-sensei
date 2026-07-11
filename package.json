@@ -5,6 +5,13 @@
   "private": true,
   "type": "module",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jethac/hermes-sensei.git"
+  },
+  "homepage": "https://github.com/jethac/hermes-sensei#readme",
+  "bugs": "https://github.com/jethac/hermes-sensei/issues",
+  "keywords": ["hermes-agent", "japanese", "learning", "mcp", "jlpt"],
   "engines": {
     "node": ">=20"
   },
