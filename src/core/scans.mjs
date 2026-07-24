@@ -322,10 +322,12 @@ function applyFindingEdits(finding, decision) {
   finding.normalized = normalizeJapanese(finding.lemma || finding.surface);
 }
 
-export async function reviewHighlights(taxonomy, learnerId, decisions, { root = defaultStateRoot() } = {}) {
+export async function reviewHighlights(taxonomy, learnerId, decisions, storeOptions = {}) {
+  const { root = defaultStateRoot() } = storeOptions;
   if (!Array.isArray(decisions) || !decisions.length) throw new Error('At least one review decision is required');
   if (decisions.length > 200) throw new Error('At most 200 review decisions may be submitted at once');
-  return updateLearner(learnerId, (state) => {
+  const newEvidence = [];
+  const result = await updateLearner(learnerId, (state) => {
     const results = [];
     const touchedScans = new Set();
     for (const decision of decisions) {
@@ -352,7 +354,7 @@ export async function reviewHighlights(taxonomy, learnerId, decisions, { root = 
         finding.linkedSubjectId = subjectId;
         const existingEvidence = state.evidence.find((event) => event.sourceRef?.findingId === finding.id);
         if (!existingEvidence) {
-          state.evidence.push({
+          const evidence = {
             id: createId('evidence'),
             sourceType: 'scan-highlight',
             sourceRef: { scanId: finding.scanId, findingId: finding.id },
@@ -370,6 +372,15 @@ export async function reviewHighlights(taxonomy, learnerId, decisions, { root = 
             latencyMs: null,
             notes: 'Learner confirmed this highlighted item as unknown in context.',
             observedAt: reviewedAt
+          };
+          state.evidence.push(evidence);
+          // The pushed copy carries the finding's written form so the mastery
+          // client can resolve it against the platform's items registry.
+          newEvidence.push({
+            ...structuredClone(evidence),
+            subjectDetail: finding.kind === 'kanji'
+              ? { character: finding.lemma || finding.surface }
+              : { lemma: finding.lemma || finding.surface, reading: finding.reading || undefined }
           });
         }
       }
@@ -382,4 +393,14 @@ export async function reviewHighlights(taxonomy, learnerId, decisions, { root = 
       personalItemCount: state.personalItems.length
     };
   }, { root });
+  // Dual-write: after the canonical local write has been persisted, hand new
+  // gap evidence to the optional mastery sync hook (fire-and-forget).
+  if (newEvidence.length && typeof storeOptions.onEvidence === 'function') {
+    try {
+      storeOptions.onEvidence(newEvidence, { learnerId });
+    } catch {
+      // Mastery sync must never break local evidence recording.
+    }
+  }
+  return result;
 }

@@ -373,7 +373,8 @@ export async function nextProbe(taxonomy, { learnerId, sessionId, includeGrading
 }
 
 export async function recordProbeEvidence(taxonomy, input, storeOptions = {}) {
-  return updateLearner(input.learnerId, (state) => {
+  let recordedEvidence = null;
+  const result = await updateLearner(input.learnerId, (state) => {
     const session = state.sessions.find((item) => item.id === input.sessionId);
     if (!session) throw new Error(`Diagnostic session not found: ${input.sessionId}`);
     const probe = session.probes.find((item) => item.id === input.probeId);
@@ -427,6 +428,7 @@ export async function recordProbeEvidence(taxonomy, input, storeOptions = {}) {
       session.status = 'completed';
       session.completedAt = observedAt;
     }
+    recordedEvidence = structuredClone(evidence);
     return {
       recorded: true,
       evidenceId: evidence.id,
@@ -437,6 +439,17 @@ export async function recordProbeEvidence(taxonomy, input, storeOptions = {}) {
       feedback: probe.gradingReference
     };
   }, storeOptions);
+  // Dual-write: after the canonical local write has been persisted, hand the
+  // evidence to the optional mastery sync hook. The hook is fire-and-forget
+  // and failure-tolerant; local recording never depends on it.
+  if (recordedEvidence && typeof storeOptions.onEvidence === 'function') {
+    try {
+      storeOptions.onEvidence([recordedEvidence], { learnerId: input.learnerId });
+    } catch {
+      // Mastery sync must never break local evidence recording.
+    }
+  }
+  return result;
 }
 
 export async function diagnosticStatus(learnerId, sessionId, storeOptions = {}) {

@@ -16,8 +16,34 @@ export async function createSenseiService(options = {}) {
   const taxonomy = await loadTaxonomy({ root: options.taxonomyRoot, fresh: options.freshTaxonomy });
   const storeOptions = options.stateRoot ? { root: options.stateRoot } : {};
 
+  // Optional mastery platform sync (dual-write). When a mastery client is
+  // provided, every locally persisted evidence record is also pushed to the
+  // mastery ledger — fire-and-forget: local recording never waits on, nor can
+  // it be failed by, the remote push (masteryClient queues undeliverable
+  // statements on disk and replays them on the next push).
+  const mastery = options.mastery ?? null;
+  if (mastery) {
+    // Pushed copies are enriched with the subject's written form so the client
+    // can resolve sensei-local vocabulary/kanji ids against mastery's items
+    // registry (taxonomy jt_* / capability jc_* ids map directly).
+    const describeSubject = (subjectId) => {
+      const vocab = taxonomy.vocabularyById.get(subjectId);
+      if (vocab) return { lemma: vocab.lemma, reading: vocab.reading || undefined };
+      const character = taxonomy.characterById.get(subjectId);
+      if (character) return { character: character.character };
+      return undefined;
+    };
+    storeOptions.onEvidence = (records, meta) => {
+      const enriched = records.map((record) => (
+        record.subjectDetail ? record : { ...record, subjectDetail: describeSubject(record.subjectId) }
+      ));
+      mastery.pushEvidence(enriched, meta).catch(() => {});
+    };
+  }
+
   return {
     taxonomy,
+    mastery,
 
     taxonomySummary() {
       return {

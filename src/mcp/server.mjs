@@ -3,6 +3,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { createSenseiService } from '../core/service.mjs';
+import { createMasteryClientFromEnvironment } from '../core/masteryClient.mjs';
 
 const lensValues = [
   'none',
@@ -28,7 +29,8 @@ const findingSchema = z.object({
   notes: z.string().max(500).optional()
 });
 
-const service = await createSenseiService();
+const mastery = await createMasteryClientFromEnvironment();
+const service = await createSenseiService({ mastery });
 const server = new McpServer(
   { name: 'sensei', version: '0.2.0' },
   {
